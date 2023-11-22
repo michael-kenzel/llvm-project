@@ -61,6 +61,9 @@ visibility, and thus multiple type_infos can exist for a single type. \
 When the dynamic_cast would normally fail, this option will cause the \
 library to try comparing the type_info names to see if they are equal \
 instead." OFF)
+option(LIBCXXABI_FALLBACK_MALLOC_ONLY
+  "Use only fallback malloc pool.
+  When enabled, libc++abi does not use external memory allocation functions to allocate exception objects." OFF)
 
 option(LIBCXXABI_ENABLE_NEW_DELETE_DEFINITIONS
   "Build libc++abi with definitions for operator new/delete. These are normally
@@ -379,6 +382,10 @@ endif()
 
 if (MSVC)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
+if (LIBCXXABI_FALLBACK_MALLOC_ONLY)
+  add_definitions(-DLIBCXXABI_FALLBACK_MALLOC_ONLY)
 endif()
 
 if (LIBCXXABI_SILENT_TERMINATE)

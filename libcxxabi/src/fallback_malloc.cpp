@@ -15,7 +15,10 @@
 #endif
 #endif
 
+#ifndef LIBCXXABI_FALLBACK_MALLOC_ONLY
 #include <__memory/aligned_alloc.h>
+#endif
+
 #include <assert.h>
 #include <stdlib.h> // for malloc, calloc, free
 #include <string.h> // for memset
@@ -255,6 +258,7 @@ namespace __cxxabiv1 {
 struct __attribute__((aligned)) __aligned_type {};
 
 void* __aligned_malloc_with_fallback(size_t size) {
+#ifndef LIBCXXABI_FALLBACK_MALLOC_ONLY
 #if defined(_WIN32)
   if (void* dest = std::__libcpp_aligned_alloc(alignof(__aligned_type), size))
     return dest;
@@ -262,26 +266,27 @@ void* __aligned_malloc_with_fallback(size_t size) {
   if (void* dest = ::malloc(size))
     return dest;
 #else
-  if (size == 0)
-    size = 1;
-  if (void* dest = std::__libcpp_aligned_alloc(__alignof(__aligned_type), size))
+  if (void* dest = std::__libcpp_aligned_alloc(__alignof(__aligned_type), size == 0 ? 1 : size))
     return dest;
+#endif
 #endif
   return fallback_malloc(size);
 }
 
 void* __calloc_with_fallback(size_t count, size_t size) {
-  void* ptr = ::calloc(count, size);
-  if (NULL != ptr)
+#ifndef LIBCXXABI_FALLBACK_MALLOC_ONLY
+  if (void* ptr = ::calloc(count, size); NULL != ptr)
     return ptr;
   // if calloc fails, fall back to emergency stash
-  ptr = fallback_malloc(size * count);
+#endif
+  void* ptr = fallback_malloc(size * count);
   if (NULL != ptr)
     ::memset(ptr, 0, size * count);
   return ptr;
 }
 
 void __aligned_free_with_fallback(void* ptr) {
+#ifndef LIBCXXABI_FALLBACK_MALLOC_ONLY
   if (is_fallback_ptr(ptr))
     fallback_free(ptr);
   else {
@@ -291,13 +296,22 @@ void __aligned_free_with_fallback(void* ptr) {
     std::__libcpp_aligned_free(ptr);
 #endif
   }
+#else
+  assert(is_fallback_ptr(ptr));
+  fallback_free(ptr);
+#endif
 }
 
 void __free_with_fallback(void* ptr) {
+#ifndef LIBCXXABI_FALLBACK_MALLOC_ONLY
   if (is_fallback_ptr(ptr))
     fallback_free(ptr);
   else
     ::free(ptr);
+#else
+  assert(is_fallback_ptr(ptr));
+  fallback_free(ptr);
+#endif
 }
 
 } // namespace __cxxabiv1
