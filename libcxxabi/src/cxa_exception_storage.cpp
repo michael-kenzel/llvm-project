@@ -12,8 +12,6 @@
 
 #include "cxa_exception.h"
 
-#include <__threading_support>
-
 #if defined(_LIBCXXABI_HAS_NO_THREADS)
 
 namespace __cxxabiv1 {
@@ -41,6 +39,8 @@ extern "C" {
 } // namespace __cxxabiv1
 
 #else
+
+#include <__threading_support>
 
 #include "abort_message.h"
 #include "fallback_malloc.h"

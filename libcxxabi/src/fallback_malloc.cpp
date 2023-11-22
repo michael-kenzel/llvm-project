@@ -8,8 +8,8 @@
 
 #include "fallback_malloc.h"
 
-#include <__threading_support>
 #ifndef _LIBCXXABI_HAS_NO_THREADS
+#include <__threading_support>
 #if defined(__ELF__) && defined(_LIBCXXABI_LINK_PTHREAD_LIB)
 #pragma comment(lib, "pthread")
 #endif
